@@ -1,0 +1,35 @@
+default:
+  foreground: 0xe6e1dc
+  background: 0x2b2b2b
+current_line:
+  foreground: 0xe6e1dc
+  background: 0x333435
+line_numbers:
+  foreground: 0x777777
+  background: 0x202020
+comment:
+  foreground: 0x666666
+todo:
+  foreground: 0x666666
+  bold: true
+constant:
+  foreground: 0x6d9cbe
+define:
+  foreground: 0xcc7833
+interpolation:
+  foreground: 0x519F50
+error:
+  foreground: 0x990000
+method:
+  foreground: 0xffc66d
+identifier:
+  foreground: 0xd0d0ff
+include:
+  foreground: 0xcc7833
+keyword:
+  foreground: 0xcc7833
+number:
+  foreground: 0xa5c261
+string:
+  foreground: 0xa5c261
+
