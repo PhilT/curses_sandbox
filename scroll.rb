@@ -3,11 +3,12 @@
 # the top or bottom after we have scrolled. Note that scrl() does not move the cursor. In other words,
 # If the cursor is on line 10 and we scrl(1) the cursor will still be on line 10 over whatever was
 # previously on line 11.
+# Press ESC to exit
 
 require 'curses'
 
 Curses.init_screen
-Curses.start_color
+Curses.ESCDELAY = 50
 @win = Curses.stdscr
 @win.clear
 Curses.raw
@@ -15,17 +16,21 @@ Curses.raw
 @win.scrollok true
 @win.keypad true
 Curses.noecho
+Curses.curs_set 0
 
 LEFT = 260
 RIGHT = 261
 UP = 259
 DOWN = 258
-CTRL_Q = 17
+ESC = 27
+
 
 def write y, line
   @win.setpos y, 0
   @win.addstr "%3s" % line
 end
+
+write 0, "       Press ESC to exit\n\n"
 
 Curses.lines.times do |line|
   write line, line
@@ -45,7 +50,7 @@ loop do
     @win.scrl(1)
     write @win.maxy - 1, @scroll_position + @win.maxy - 1
     @win.refresh
-  elsif c.ord == CTRL_Q
+  elsif c.ord == ESC
     break
   end
 end

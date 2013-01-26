@@ -4,15 +4,17 @@
 # If refresh is not called on each window only the final window is shown (the one with the getch)
 
 require 'curses'
-include Curses
 
 Curses.init_screen
-Curses.start_color
+Curses.ESCDELAY = 50
 win = Curses.stdscr
 win.clear
 Curses.raw
 win.keypad true
 Curses.noecho
+Curses.curs_set 0
+
+ESC = 27
 
 height = Curses.lines
 width = Curses.cols
@@ -42,9 +44,13 @@ end
   @w.write(2, 4, "width: #{w}")
   @w.write(2, 5, "height: #{h}")
   @w.refresh
+  @window_height = h
 end
 
-@w.getch
+@w.write(2, @window_height - 2, "Press ESC to exit")
+
+while @w.getch != ESC
+end
 
 Curses.close_screen
 

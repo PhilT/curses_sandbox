@@ -5,11 +5,12 @@
 # best to run this in xterm (or remove ALT key requests).
 
 # Keys not included have found not to be recognised by Curses.
+# Press ESC to abort (does not save file)
 
 require 'curses'
 
 Curses.init_screen
-Curses.start_color
+Curses.ESCDELAY = 50
 win = Curses.stdscr
 win.clear
 Curses.raw
@@ -17,6 +18,8 @@ win.idlok true
 win.scrollok true
 win.keypad true
 Curses.noecho
+
+Curses.stdscr << "Press ESC to exit\n\n"
 
 keys = %w(
 LEFT
@@ -56,22 +59,36 @@ BACKSPACE
 CTRL_DELETE
 
 TAB
-ESC
+ENTER
 )
 
-File.open('keys.rb', 'w') do |f|
-  f.puts "# GENERATED FROM keycodes.rb"
-  f.puts "module Key"
-  keys.each do |key|
-    win.addstr("#{key} = ")
-    code = win.getch.ord
-    f.puts "  #{key} = #{code}"
-    win.addstr("#{code}\n")
-  end
-
-  ('A'..'Z').each do |letter|
-    f.puts "  CTRL_#{letter} = #{letter.ord - 'A'.ord + 1}"
-  end
-  f.puts "end"
+def key_name key
+  key + %w(HOME END).include?(key) ? '_KEY' : ''
 end
 
+contents = []
+
+contents <<  "# GENERATED FROM keycodes.rb"
+contents << "module Key"
+contents << '  ESC = 27'
+keys.each do |key|
+  win.addstr("#{key} = ")
+  code = win.getch.ord
+  exit if code == 27
+  contents << "  #{key_name(key)} = #{code}"
+  win.addstr("#{code}\n")
+end
+
+('A'..'Z').each do |letter|
+  contents << "  CTRL_#{letter} = #{letter.ord - 'A'.ord + 1}"
+end
+contents << "end"
+
+File.open('keys.rb', 'w') do |f|
+  f.puts contents.join("\n") + "\n"
+end
+
+Curses.close_screen
+
+puts 'Keycodes saved to keys.rb. Press ENTER.'
+gets

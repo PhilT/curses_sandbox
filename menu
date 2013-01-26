@@ -1,0 +1,96 @@
+#!/usr/bin/env ruby
+
+# Puts together a few of the concepts from the other examples
+# to present a menu to choose the examples from
+
+ENV['TERM'] = 'xterm-256color' # This may need tweaking for other *nixes
+
+require 'curses'
+require './keys'
+
+module Curses
+  class Window
+    def write x, y, text
+      setpos y, x
+      addstr text
+    end
+  end
+end
+
+@option = 0
+@options = [
+  'color    - Setting RGB colors, working with color pairs and attributes',
+  'keycodes - Records user input and generates keys.rb with the constants',
+  'mouse    - Display mouse position and button clicks',
+  'scroll   - A way to scroll a window',
+  'signals  - Handle OS signals',
+  'windows  - Draw multiple windows with borders'
+]
+
+def set_color index, hex
+  hex.sub!('#', '')
+  r, g, b = hex[0..1], hex[2..3], hex[4..5]
+  r, g, b = (r.to_i(16) / 255.0 * 1000).to_i, (g.to_i(16) / 255.0 * 1000).to_i, (b.to_i(16) / 255.0 * 1000).to_i
+  Curses.init_color(index, r, g, b)
+end
+
+def init_curses
+  Curses.init_screen
+  Curses.ESCDELAY = 50
+  Curses.start_color
+  window = Curses.stdscr
+  window.clear
+  Curses.raw
+  window.keypad true
+  Curses.noecho
+  Curses.curs_set 1
+
+  set_color(0, '#222222')
+  set_color(20, '#3399ff')
+  set_color(21, '#002233')
+  set_color(22, '#8899aa')
+  Curses.init_pair(20, 20, 21)
+  Curses.init_pair(21, 22, 0)
+  Curses.bkgd(Curses.color_pair(20))
+
+  width = Curses.cols
+  Curses.attron(Curses.color_pair(20) | Curses::A_BOLD) { window.write 0, 1, ' Curses Menu:' }
+  Curses.attron(Curses.color_pair(20)) { window << ' Select a program to run' }
+  Curses.attron(Curses.color_pair(20)) { window << ' ' * (width - window.curx) }
+  Curses.attron(Curses.color_pair(20)) { window.write(width - 25, 1, 'Press ESC to exit') }
+
+  @options.each_with_index do |opt, i|
+    Curses.attron(Curses.color_pair(21)) { window.write 10, i + 5, "  %-70s  " % opt }
+  end
+  Curses.attron(Curses.color_pair(21) | Curses::A_REVERSE) { window.write 10, @option + 5, "  %-70s  " % @options[@option]}
+  Curses.attrset(Curses.color_pair(20) | Curses::A_REVERSE)
+
+  window
+end
+
+def close_curses
+  Curses.close_screen
+end
+
+window = init_curses
+
+while (key = window.getch) != Key::ESC
+  old_option = @option
+  if key == Key::UP
+    @option -= 1 unless @option == 0
+  elsif key == Key::DOWN
+    @option += 1 unless @option == 5
+  elsif key == Key::ENTER
+    program = @options[@option].gsub(/(.*?) +.*/, '\1')
+    close_curses
+    system "ruby #{program}.rb"
+    window = init_curses
+  end
+
+  if old_option != @option
+    Curses.attron(Curses.color_pair(21) | Curses::A_REVERSE) { window.write 10, @option + 5, "  %-70s  " % @options[@option]}
+    Curses.attron(Curses.color_pair(21)) { window.write 10, old_option + 5, "  %-70s  " % @options[old_option] }
+  end
+end
+
+close_curses

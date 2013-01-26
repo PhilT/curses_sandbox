@@ -1,5 +1,6 @@
 # GENERATED FROM keycodes.rb
 module Key
+  ESC = 27
   LEFT = 260
   RIGHT = 261
   UP = 259
@@ -20,8 +21,8 @@ module Key
   CTRL_SHIFT_RIGHT = 555
   CTRL_SHIFT_UP = 561
   CTRL_SHIFT_DOWN = 520
-  HOME = 262
-  END = 360
+  HOME_KEY = 262
+  END_KEY = 360
   PAGE_UP = 339
   PAGE_DOWN = 338
   CTRL_HOME = 529
@@ -33,7 +34,7 @@ module Key
   BACKSPACE = 263
   CTRL_DELETE = 513
   TAB = 9
-  ESC = 27
+  ENTER = 10
   CTRL_A = 1
   CTRL_B = 2
   CTRL_C = 3

@@ -1,29 +1,31 @@
-# Attempt to read mouse event such as location and buttons pressed. Works well with first three
+# Attempt to read mouse events such as location and buttons pressed. Works well with first three
 # buttons but has trouble with scroll wheel and other buttons
 # Also seems to work okay with clicked and pressed events but not released
-# CTRL+C to quit
+# Press ESC to exit
 
 require "curses"
-include Curses
 
-init_screen
-noecho
-stdscr.keypad(true)
-stdscr.scrollok true
+Curses.init_screen
+Curses.ESCDELAY = 50
+Curses.noecho
+Curses.stdscr.keypad(true)
+Curses.stdscr.scrollok true
 Curses.raw
 
-CTRL_C = 3
+ESC = 27
+
+Curses.stdscr << "Press ESC to exit\n\n"
 
 
 def bstate m
   (1..4).map do | button |
     button = "BUTTON#{button}_"
     states = {
-      eval("#{button}CLICKED") => "#{button}CLICKED",
-      eval("#{button}DOUBLE_CLICKED") => "#{button}DOUBLE_CLICKED",
-      eval("#{button}PRESSED") => "#{button}PRESSED",
-      eval("#{button}RELEASED") => "#{button}RELEASED",
-      eval("#{button}TRIPLE_CLICKED") => "#{button}TRIPLE_CLICKED"
+      eval("Curses::#{button}CLICKED") => "#{button}CLICKED",
+      eval("Curses::#{button}DOUBLE_CLICKED") => "#{button}DOUBLE_CLICKED",
+      eval("Curses::#{button}PRESSED") => "#{button}PRESSED",
+      eval("Curses::#{button}RELEASED") => "#{button}RELEASED",
+      eval("Curses::#{button}TRIPLE_CLICKED") => "#{button}TRIPLE_CLICKED"
     }
 
     states.map{|k, v| m.bstate & k != 0 ? v : nil}
@@ -32,19 +34,19 @@ end
 
 
 begin
-  mousemask(ALL_MOUSE_EVENTS)
-  refresh
+  Curses.mousemask(Curses::ALL_MOUSE_EVENTS)
+  Curses.refresh
   while( true )
-    c = getch
+    c = Curses.getch
     case c
-    when KEY_MOUSE
-      m = getmouse
-      stdscr << "x=#{m.x}, y=#{m.y}, buttons (#{'0x%x' % m.bstate}): #{bstate(m)}\n"
+    when Curses::KEY_MOUSE
+      m = Curses.getmouse
+      Curses.stdscr << "x=#{m.x}, y=#{m.y}, buttons (#{'0x%x' % m.bstate}): #{bstate(m)}\n"
     end
-    break if c.ord == CTRL_C
+    break if c.ord == ESC
   end
-  refresh
+  Curses.refresh
 ensure
-  close_screen
+  Curses.close_screen
 end
 
