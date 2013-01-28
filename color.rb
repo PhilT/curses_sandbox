@@ -55,7 +55,10 @@ Curses.attron(Curses.color_pair(22)) { win << "Should be gray on black\n" }
 Curses.attron(Curses.color_pair(23)) { win << "Dark gray\n" }
 Curses.attron(Curses.color_pair(24)) { win << "Should be green\n" }
 Curses.attron(Curses.color_pair(24) | Curses::A_BOLD) { win << "Should be bold green\n" }
-Curses.attron(Curses.color_pair(24) | Curses::A_REVERSE) { win << "Should be reversed green\n" }
+Curses.attron(Curses.color_pair(0) | Curses::A_NORMAL) { win << "Should be normal text, and below alternate charset\n" }
+Curses.attron(Curses::A_ALTCHARSET) { win << "k,sdfjhsdfkjsdhfjkhsd\n" }
+Curses.attron(Curses.color_pair(0) | Curses::A_REVERSE) { win << "Should be reversed\n" }
+Curses.attron(Curses.color_pair(0) | Curses::A_UNDERLINE) { win << "Should be underlined\n" }
 
 win << "Press ESC to exit\n"
 while Curses.getch != ESC

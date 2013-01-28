@@ -3,8 +3,6 @@
 # Puts together a few of the concepts from the other examples
 # to present a menu to choose the examples from
 
-ENV['TERM'] = 'xterm-256color' # This may need tweaking for other *nixes
-
 require 'curses'
 require './keys'
 
@@ -43,7 +41,7 @@ def init_curses
   Curses.raw
   window.keypad true
   Curses.noecho
-  Curses.curs_set 1
+  Curses.curs_set 0
 
   set_color(0, '#222222')
   set_color(20, '#3399ff')
