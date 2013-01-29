@@ -4,17 +4,15 @@
 # If refresh is not called on each window only the final window is shown (the one with the getch)
 # Another trick here is the use of Curses::A_ALTCHARSET to get the proper lines in the `box` call
 
-ENV['TERM'] = 'xterm-256color'
-
 require 'curses'
 
 Curses.init_screen
 Curses.start_color
 Curses.ESCDELAY = 50
-win = Curses.stdscr
-win.clear
+main = Curses.stdscr
+main.clear
 Curses.raw
-win.keypad true
+main.keypad true
 Curses.noecho
 Curses.curs_set 0
 
@@ -35,26 +33,32 @@ module Curses
   end
 end
 
-[
-  [0, 0, x_center, y_center],
-  [x_center + 1, 0, width - x_center - 1, y_center],
-  [0, y_center, x_center, height - y_center],
-  [x_center + 1, y_center, width - x_center - 1, height - y_center]
-].each do |x, y, w, h|
-  @w = Curses::Window.new(h, w, y, x)
-  @w.attron(Curses::A_ALTCHARSET) { @w.box('x', 'q') }
-  @w.write(2, 2, "x: #{x}")
-  @w.write(2, 3, "y: #{y}")
-  @w.write(2, 4, "width: #{w}")
-  @w.write(2, 5, "height: #{h}")
-  @w.refresh
-  @window_height = h
+windows = [
+  [1, 0, 0, x_center, y_center],
+  [2, x_center + 1, 0, width - x_center - 1, y_center],
+  [3, 0, y_center, x_center, height - y_center],
+  [4, x_center + 1, y_center, width - x_center - 1, height - y_center]
+].map do |n, x, y, w, h|
+  panel = main.subwin(h, w, y, x)
+  panel.attron(Curses::A_ALTCHARSET) { panel.box('x', 'q') }
+  panel.write(1, 1, "Window #{n}")
+  panel.write(1, 2, "#{x}, #{y}, #{w}x#{h}")
+  panel.noutrefresh
+  panel
 end
 
-@w.write(2, @window_height - 2, "Press ESC to exit")
+window = main.subwin(height - 8, 80, 3, 20)
+window.clear
+window.attron(Curses::A_ALTCHARSET) { window.box('x', 'q') }
+window.write(2, 2, 'Window 5')
 
-while @w.getch != ESC
+
+windows.last.write(50, 5, "Press ESC to exit")
+main.noutrefresh
+
+Curses.doupdate
+
+while main.getch != ESC
 end
 
 Curses.close_screen
-
