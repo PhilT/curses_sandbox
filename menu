@@ -21,7 +21,7 @@ end
   'color    - Setting RGB colors, working with color pairs and attributes',
   'keycodes - Records user input and generates keys.rb with the constants',
   'mouse    - Display mouse position and button clicks',
-  'redraw   - Discover how overlapping windows are redrawn',
+  'overlap  - Emulate overlapping windows',
   'scroll   - A way to scroll a main',
   'signals  - Handle OS signals',
   'windows  - Draw multiple mains with borders'
