@@ -20,74 +20,85 @@ end
   'color    - Setting RGB colors, working with color pairs and attributes',
   'keycodes - Records user input and generates keys.rb with the constants',
   'mouse    - Display mouse position and button clicks',
-  'scroll   - A way to scroll a window',
+  'redraw   - Discover how overlapping windows are redrawn',
+  'scroll   - A way to scroll a main',
   'signals  - Handle OS signals',
-  'windows  - Draw multiple windows with borders'
+  'windows  - Draw multiple mains with borders'
 ]
 
-def set_color index, hex
-  hex.sub!('#', '')
-  r, g, b = hex[0..1], hex[2..3], hex[4..5]
-  r, g, b = (r.to_i(16) / 255.0 * 1000).to_i, (g.to_i(16) / 255.0 * 1000).to_i, (b.to_i(16) / 255.0 * 1000).to_i
+def set_color index, r, g = nil, b = nil
+  unless g
+    r, g, b = r[0..1], r[2..3], r[4..5]
+    r, g, b = (r.to_i(16) / 255.0 * 1000).to_i, (g.to_i(16) / 255.0 * 1000).to_i, (b.to_i(16) / 255.0 * 1000).to_i
+  end
   Curses.init_color(index, r, g, b)
 end
+
+TITLE = 20
+NORMAL = 21
+CURRENT = 22
 
 def init_curses
   Curses.init_screen
   Curses.ESCDELAY = 50
   Curses.start_color
-  window = Curses.stdscr
-  window.clear
   Curses.raw
-  window.keypad true
   Curses.noecho
   Curses.curs_set 0
+  #Curses.use_default_colors # when set: uses URxvt.background in Xdefaults, otherwise: uses color 0 as background
 
-  set_color(0, '#222222')
-  set_color(20, '#3399ff')
-  set_color(21, '#002233')
-  set_color(22, '#8899aa')
-  Curses.init_pair(20, 20, 21)
-  Curses.init_pair(21, 22, 0)
-  Curses.bkgd(Curses.color_pair(20))
+  set_color(0, '272822') # Sets the background color
+  set_color(20, 'f92672')
+  set_color(21, '002255')
+  set_color(22, 'dddddd')
+  set_color(23, '3c3d37')
+
+  Curses.init_pair(TITLE, 20, 0)
+  Curses.init_pair(NORMAL, 22, 0)
+  Curses.init_pair(CURRENT, 22, 23)
+  Curses.clear
+  Curses.refresh
+
+  main = Curses.stdscr
+  main.keypad true
 
   width = Curses.cols
-  Curses.attron(Curses.color_pair(20) | Curses::A_BOLD) { window.write 0, 1, ' Curses Menu:' }
-  Curses.attron(Curses.color_pair(20)) { window << ' Select a program to run' }
-  Curses.attron(Curses.color_pair(20)) { window << ' ' * (width - window.curx) }
-  Curses.attron(Curses.color_pair(20)) { window.write(width - 25, 1, 'Press ESC to exit') }
+  Curses.attron(Curses.color_pair(TITLE) | Curses::A_BOLD) { main.write 0, 1, ' Curses Menu:' }
+  Curses.attron(Curses.color_pair(TITLE)) { main << ' Select a program to run' }
+  Curses.attron(Curses.color_pair(TITLE)) { main << ' ' * (width - main.curx) }
+  Curses.attron(Curses.color_pair(TITLE)) { main.write(width - 25, 1, 'Press ESC to exit') }
 
   @options.each_with_index do |opt, i|
-    Curses.attron(Curses.color_pair(21)) { window.write 10, i + 5, "  %-70s  " % opt }
+    Curses.attron(Curses.color_pair(NORMAL)) { main.write 0, i + 5, "          %-#{width - 10}s" % opt }
   end
-  Curses.attron(Curses.color_pair(21) | Curses::A_REVERSE) { window.write 10, @option + 5, "  %-70s  " % @options[@option]}
-  Curses.attrset(Curses.color_pair(20) | Curses::A_REVERSE)
+  Curses.attron(Curses.color_pair(CURRENT)) { main.write 0, @option + 5, "          %-#{width - 10}s" % @options[@option]}
 
-  window
+  main
 end
 
 def close_curses
   Curses.close_screen
 end
 
-window = init_curses
+main = init_curses
+width = Curses.cols
 
-while (key = window.getch) != Key::ESC
+while (key = main.getch) != Key::ESC
   old_option = @option
   if key == Key::UP
     @option -= 1 unless @option == 0
   elsif key == Key::DOWN
-    @option += 1 unless @option == 5
+    @option += 1 unless @option == @options.size - 1
   elsif key == Key::ENTER
     program = @options[@option].gsub(/(.*?) +.*/, '\1')
     close_curses
     system "ruby #{program}.rb"
-    window = init_curses
+    main = init_curses
   end
 
   if old_option != @option
-    Curses.attron(Curses.color_pair(21) | Curses::A_REVERSE) { window.write 10, @option + 5, "  %-70s  " % @options[@option]}
-    Curses.attron(Curses.color_pair(21)) { window.write 10, old_option + 5, "  %-70s  " % @options[old_option] }
+    Curses.attron(Curses.color_pair(CURRENT)) { main.write 0, @option + 5, "          %-#{width - 10}s" % @options[@option]}
+    Curses.attron(Curses.color_pair(NORMAL)) { main.write 0, old_option + 5, "          %-#{width - 10}s" % @options[old_option] }
   end
 end
 

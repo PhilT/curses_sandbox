@@ -9,10 +9,7 @@ require 'curses'
 Curses.init_screen
 Curses.start_color
 Curses.ESCDELAY = 50
-main = Curses.stdscr
-main.clear
 Curses.raw
-main.keypad true
 Curses.noecho
 Curses.curs_set 0
 
@@ -39,7 +36,7 @@ windows = [
   [3, 0, y_center, x_center, height - y_center],
   [4, x_center + 1, y_center, width - x_center - 1, height - y_center]
 ].map do |n, x, y, w, h|
-  panel = main.subwin(h, w, y, x)
+  panel = Curses::Window.new(h, w, y, x)
   panel.attron(Curses::A_ALTCHARSET) { panel.box('x', 'q') }
   panel.write(1, 1, "Window #{n}")
   panel.write(1, 2, "#{x}, #{y}, #{w}x#{h}")
@@ -47,18 +44,16 @@ windows = [
   panel
 end
 
-window = main.subwin(height - 8, 80, 3, 20)
+window = Curses::Window.new(height - 8, 80, 3, 20)
 window.clear
 window.attron(Curses::A_ALTCHARSET) { window.box('x', 'q') }
 window.write(2, 2, 'Window 5')
 
 
 windows.last.write(50, 5, "Press ESC to exit")
-main.noutrefresh
 
-Curses.doupdate
-
-while main.getch != ESC
+window.keypad true # Stops special keys being interpreted as ESC (e.g. cursor keys)
+while window.getch != ESC
 end
 
 Curses.close_screen
