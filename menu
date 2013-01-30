@@ -2,6 +2,7 @@
 
 # Puts together a few of the concepts from the other examples
 # to present a menu to choose the examples from
+# Note the use of `trap` to handle window changes (WINCH)
 
 require 'curses'
 require './keys'
@@ -71,7 +72,7 @@ def init_curses
   @options.each_with_index do |opt, i|
     Curses.attron(Curses.color_pair(NORMAL)) { main.write 0, i + 5, "          %-#{width - 10}s" % opt }
   end
-  Curses.attron(Curses.color_pair(CURRENT)) { main.write 0, @option + 5, "          %-#{width - 10}s" % @options[@option]}
+  Curses.attron(Curses.color_pair(CURRENT) | Curses::A_BOLD) { main.write 0, @option + 5, "          %-#{width - 10}s" % @options[@option]}
 
   main
 end
@@ -81,6 +82,7 @@ def close_curses
 end
 
 main = init_curses
+trap('WINCH') { |signal_id| main = init_curses }
 width = Curses.cols
 
 while (key = main.getch) != Key::ESC
@@ -97,7 +99,7 @@ while (key = main.getch) != Key::ESC
   end
 
   if old_option != @option
-    Curses.attron(Curses.color_pair(CURRENT)) { main.write 0, @option + 5, "          %-#{width - 10}s" % @options[@option]}
+    Curses.attron(Curses.color_pair(CURRENT) | Curses::A_BOLD) { main.write 0, @option + 5, "          %-#{width - 10}s" % @options[@option]}
     Curses.attron(Curses.color_pair(NORMAL)) { main.write 0, old_option + 5, "          %-#{width - 10}s" % @options[old_option] }
   end
 end
